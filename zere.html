@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Минималистік шахмат</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #chess-board {
+            display: grid;
+            grid-template-columns: repeat(8, 50px);
+            grid-template-rows: repeat(8, 50px);
+            border: 2px solid #333;
+        }
+        .square {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            cursor: pointer;
+        }
+        .white {
+            background-color: #f0d9b5;
+        }
+        .black {
+            background-color: #b58863;
+        }
+        .highlight {
+            background-color: rgba(255, 255, 0, 0.5);
+        }
+        #captured-pieces {
+            display: flex;
+            justify-content: space-between;
+            width: 400px;
+            margin-top: 20px;
+        }
+        .captured-white, .captured-black {
+            display: flex;
+            flex-wrap: wrap;
+            width: 180px;
+        }
+        .captured-piece {
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ddd;
+            margin: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <div id="chess-board"></div>
+        <div id="captured-pieces">
+            <div class="captured-white"></div>
+            <div class="captured-black"></div>
+        </div>
+    </div>
+    <script>
+        const board = document.getElementById('chess-board');
+        const capturedWhite = document.querySelector('.captured-white');
+        const capturedBlack = document.querySelector('.captured-black');
+        let selectedPiece = null;
+        let currentPlayer = 'white';
+
+        const initialBoard = [
+            ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'],
+            ['♟', '♟', '♟', '♟', '♟', '♟', '♟', '♟'],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙'],
+            ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖']
+        ];
+
+        function createBoard() {
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 8; j++) {
+                    const square = document.createElement('div');
+                    square.classList.add('square');
+                    square.classList.add((i + j) % 2 === 0 ? 'white' : 'black');
+                    square.dataset.row = i;
+                    square.dataset.col = j;
+                    square.textContent = initialBoard[i][j];
+                    square.addEventListener('click', handleClick);
+                    board.appendChild(square);
+                }
+            }
+        }
+
+        function handleClick(event) {
+            const square = event.target;
+            const row = parseInt(square.dataset.row);
+            const col = parseInt(square.dataset.col);
+
+            if (selectedPiece) {
+                if (isValidMove(selectedPiece, square)) {
+                    movePiece(selectedPiece, square);
+                    clearHighlights();
+                    selectedPiece = null;
+                    currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
+                } else {
+                    clearHighlights();
+                    selectedPiece = null;
+                }
+            } else {
+                if (square.textContent && isPieceOwner(square.textContent, currentPlayer)) {
+                    selectedPiece = square;
+                    highlightPossibleMoves(row, col);
+                }
+            }
+        }
+
+        function isValidMove(from, to) {
+            // Бұл функция әр фигура үшін жүріс ережелерін тексеруі керек
+            // Қазір біз тек бос орынға жүруге рұқсат береміз
+            return to.textContent === '';
+        }
+
+        function movePiece(from, to) {
+            if (to.textContent) {
+                capturePiece(to.textContent);
+            }
+            to.textContent = from.textContent;
+            from.textContent = '';
+        }
+
+        function capturePiece(piece) {
+            const capturedPiece = document.createElement('div');
+            capturedPiece.classList.add('captured-piece');
+            capturedPiece.textContent = piece;
+            if (piece.charCodeAt(0) >= 9813 && piece.charCodeAt(0) <= 9818) {
+                capturedBlack.appendChild(capturedPiece);
+            } else {
+                capturedWhite.appendChild(capturedPiece);
+            }
+        }
+
+        function isPieceOwner(piece, player) {
+            return (player === 'white' && piece.charCodeAt(0) >= 9812 && piece.charCodeAt(0) <= 9817) ||
+                   (player === 'black' && piece.charCodeAt(0) >= 9818 && piece.charCodeAt(0) <= 9823);
+        }
+
+        function highlightPossibleMoves(row, col) {
+            // Бұл функция таңдалған фигураның мүмкін жүрістерін көрсетуі керек
+            // Қазір біз барлық бос орындарды көрсетеміз
+            const squares = document.querySelectorAll('.square');
+            squares.forEach(square => {
+                if (square.textContent === '') {
+                    square.classList.add('highlight');
+                }
+            });
+        }
+
+        function clearHighlights() {
+            const squares = document.querySelectorAll('.square');
+            squares.forEach(square => square.classList.remove('highlight'));
+        }
+
+        createBoard();
+    </script>
+</body>
+</html>
